@@ -1,5 +1,5 @@
 {
-  "name": "nodejs online store",
+  "name": "store",
   "version": "1.0.0",
   "description": "Online store",
   "main": "app.js",
