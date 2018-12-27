@@ -4,23 +4,23 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
-const errorController = require('./controllers/error');
-const User = require('./models/user');
+const errorController = require('../../Downloads/03-configuring-cookies/controllers/error');
+const User = require('../../Downloads/03-configuring-cookies/models/user');
 
 const app = express();
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
-const adminRoutes = require('./routes/admin');
-const shopRoutes = require('./routes/shop');
-const authRoutes = require('./routes/auth');
+const adminRoutes = require('../../Downloads/03-configuring-cookies/routes/admin');
+const shopRoutes = require('../../Downloads/03-configuring-cookies/routes/shop');
+const authRoutes = require('../../Downloads/03-configuring-cookies/routes/auth');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use((req, res, next) => {
-  User.findById('5c22cfe8f7afd063b17a1108')
+  User.findById('5bab316ce0a7c75f783cb8a8')
     .then(user => {
       req.user = user;
       next();
@@ -39,8 +39,7 @@ mongoose
     'mongodb+srv://tahauygun:tacoNy1985@cluster0-v8atw.mongodb.net/shop?retryWrites=true',
   )
   .then(result => {
-
-    User.findOne().then(user=>{
+    User.findOne().then(user => {
       if (!user) {
         const user = new User({
           name: 'Taha',
@@ -51,8 +50,7 @@ mongoose
         });
         user.save();
       }
-    })
-
+    });
     app.listen(3000);
   })
   .catch(err => {
