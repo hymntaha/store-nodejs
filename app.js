@@ -3,21 +3,25 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const session = require('express-session');
 
-const errorController = require('../../Downloads/03-configuring-cookies/controllers/error');
-const User = require('../../Downloads/03-configuring-cookies/models/user');
+const errorController = require('./controllers/error');
+const User = require('./models/user');
 
 const app = express();
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
-const adminRoutes = require('../../Downloads/03-configuring-cookies/routes/admin');
-const shopRoutes = require('../../Downloads/03-configuring-cookies/routes/shop');
-const authRoutes = require('../../Downloads/03-configuring-cookies/routes/auth');
+const adminRoutes = require('./routes/admin');
+const shopRoutes = require('./routes/shop');
+const authRoutes = require('./routes/auth');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(
+  session({ secret: 'my secret', resave: false, saveUninitialized: false }),
+);
 
 app.use((req, res, next) => {
   User.findById('5bab316ce0a7c75f783cb8a8')
@@ -45,8 +49,8 @@ mongoose
           name: 'Taha',
           email: 'tuygunny@gmail.com',
           cart: {
-            items: []
-          }
+            items: [],
+          },
         });
         user.save();
       }
