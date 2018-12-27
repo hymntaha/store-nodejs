@@ -4,11 +4,12 @@ const Order = require('../models/order');
 exports.getProducts = (req, res, next) => {
   Product.find()
     .then(products => {
+      console.log(products);
       res.render('shop/product-list', {
         prods: products,
         pageTitle: 'All Products',
         path: '/products',
-        isAuthenticated: req.isLoggedIn,
+        isAuthenticated: req.isLoggedIn
       });
     })
     .catch(err => {
@@ -24,7 +25,7 @@ exports.getProduct = (req, res, next) => {
         product: product,
         pageTitle: product.title,
         path: '/products',
-        isAuthenticated: req.isLoggedIn,
+        isAuthenticated: req.isLoggedIn
       });
     })
     .catch(err => console.log(err));
@@ -37,6 +38,7 @@ exports.getIndex = (req, res, next) => {
         prods: products,
         pageTitle: 'Shop',
         path: '/',
+        isAuthenticated: req.isLoggedIn
       });
     })
     .catch(err => {
@@ -54,7 +56,7 @@ exports.getCart = (req, res, next) => {
         path: '/cart',
         pageTitle: 'Your Cart',
         products: products,
-        isAuthenticated: req.isLoggedIn,
+        isAuthenticated: req.isLoggedIn
       });
     })
     .catch(err => console.log(err));
@@ -84,7 +86,7 @@ exports.postCartDeleteProduct = (req, res, next) => {
 
 exports.postOrder = (req, res, next) => {
   req.user
-    .populate('car.items.productId')
+    .populate('cart.items.productId')
     .execPopulate()
     .then(user => {
       const products = user.cart.items.map(i => {
@@ -93,9 +95,9 @@ exports.postOrder = (req, res, next) => {
       const order = new Order({
         user: {
           name: req.user.name,
-          userId: req.user,
+          userId: req.user
         },
-        products: products,
+        products: products
       });
       return order.save();
     })
@@ -115,7 +117,7 @@ exports.getOrders = (req, res, next) => {
         path: '/orders',
         pageTitle: 'Your Orders',
         orders: orders,
-        isAuthenticated: req.isLoggedIn,
+        isAuthenticated: req.isLoggedIn
       });
     })
     .catch(err => console.log(err));
