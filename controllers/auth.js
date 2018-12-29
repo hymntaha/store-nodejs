@@ -1,6 +1,17 @@
 const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
+const sendGridTransport = require('nodemailer-sendgrid-transport');
 
 const User = require('../models/user');
+
+const transporter = nodemailer.createTransport(
+  sendGridTransport({
+    auth: {
+      api_key:
+        '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',
+    },
+  }),
+);
 
 exports.getLogin = (req, res, next) => {
   let message = req.flash('error');
@@ -12,7 +23,7 @@ exports.getLogin = (req, res, next) => {
   res.render('auth/login', {
     path: '/login',
     pageTitle: 'Login',
-    errorMessage: message
+    errorMessage: message,
   });
 };
 
@@ -26,7 +37,7 @@ exports.getSignup = (req, res, next) => {
   res.render('auth/signup', {
     path: '/signup',
     pageTitle: 'Signup',
-    errorMessage: message
+    errorMessage: message,
   });
 };
 
@@ -37,7 +48,7 @@ exports.postLogin = (req, res, next) => {
   User.findOne({ email: email })
     .then(user => {
       if (!user) {
-        req.flash('error','Invalid email or password.');
+        req.flash('error', 'Invalid email or password.');
         return res.redirect('/login');
       }
 
@@ -52,7 +63,7 @@ exports.postLogin = (req, res, next) => {
               res.redirect('/');
             });
           }
-          req.flash('error','Invalid email or password.');
+          req.flash('error', 'Invalid email or password.');
           res.redirect('/login');
         })
         .catch(err => {
@@ -71,7 +82,10 @@ exports.postSignup = (req, res, next) => {
   User.findOne({ email: email })
     .then(userDoc => {
       if (userDoc) {
-        req.flash('error','E-mail exists already, please pick a different one.');
+        req.flash(
+          'error',
+          'E-mail exists already, please pick a different one.',
+        );
         return res.redirect('/signup');
       }
       return bcrypt
@@ -86,6 +100,15 @@ exports.postSignup = (req, res, next) => {
         })
         .then(result => {
           res.redirect('/login');
+          return transporter.sendMail({
+            to: email,
+            from: 'shop@node-complete.com',
+            subject: 'Signup succeeded!',
+            html: '<h1>You successfully signed up!</h1>',
+          });
+        })
+        .catch(err => {
+          console.log(err);
         });
     })
     .catch(err => {
