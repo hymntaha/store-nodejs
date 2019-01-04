@@ -8,9 +8,9 @@ const MongoDBStore = require('connect-mongodb-session')(session);
 const csrf = require('csurf');
 const flash = require('connect-flash');
 
-const errorController = require('../../Downloads/02-returning-error-pages/controllers/error');
-const User = require('../../Downloads/02-returning-error-pages/models/user');
-const db = require('./config/keys-dev').mongoURI;
+const errorController = require('../controllers/error.js');
+const User = require('../models/user');
+const db = require('../config/keys-dev').mongoURI;
 
 const app = express();
 const store = new MongoDBStore({
@@ -22,9 +22,9 @@ const csrfProtection = csrf();
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
-const adminRoutes = require('../../Downloads/02-returning-error-pages/routes/admin');
-const shopRoutes = require('../../Downloads/02-returning-error-pages/routes/shop');
-const authRoutes = require('../../Downloads/02-returning-error-pages/routes/auth');
+const adminRoutes = require('../routes/admin');
+const shopRoutes = require('../routes/shop');
+const authRoutes = require('../routes/auth');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -69,6 +69,10 @@ app.use(authRoutes);
 app.get('/500', errorController.get500);
 
 app.use(errorController.get404);
+
+app.use((error, req, res, next) => {
+  res.redirect('/500');
+})
 
 mongoose
   .connect(db)
