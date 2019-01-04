@@ -10,8 +10,7 @@ const flash = require('connect-flash');
 
 const errorController = require('./controllers/error');
 const User = require('./models/user');
-const db = require("./config/keys-dev").mongoURI;
-
+const db = require('./config/keys-dev').mongoURI;
 
 const app = express();
 const store = new MongoDBStore({
@@ -27,8 +26,6 @@ app.set('views', 'views');
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
 const authRoutes = require('./routes/auth');
-
-
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -59,10 +56,16 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   User.findById('5bab316ce0a7c75f783cb8a8')
     .then(user => {
+      if (!user) {
+        return next();
+      }
       req.user = user;
       next();
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+      throw new Error(err)
+    });
+
 });
 
 app.use((req, res, next) => {
