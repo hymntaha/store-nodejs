@@ -9,35 +9,51 @@ const csrf = require('csurf');
 const flash = require('connect-flash');
 const multer = require('multer');
 
-const errorController = require('../controllers/error.js');
-const User = require('../models/user');
-const db = require('../config/keys-dev').mongoURI;
+const errorController = require('./controllers/error.js');
+const User = require('./models/user');
+
+const db = require('./config/keys-dev').mongoURI;
 
 const app = express();
 const store = new MongoDBStore({
   uri: db,
-  collection: 'sessions'
+  collection: 'sessions',
 });
 const csrfProtection = csrf();
+
 const fileStorage = multer.diskStorage({
-  destination: (req,file,cb) =>{
-    cb(null,'images');
+  destination: (req, file, cb) => {
+    cb(null, 'images');
   },
-  filename:(req,file,cb) =>{
+  filename: (req, file, cb) => {
     cb(null, new Date().toISOString() + '-' + file.originalname);
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === 'image/png' ||
+    file.mimetype === 'image/jpg' ||
+    file.mimetype === 'image/jpg'
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
   }
-})
+};
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
-const adminRoutes = require('../routes/admin');
-const shopRoutes = require('../routes/shop');
-const authRoutes = require('../routes/auth');
+const adminRoutes = require('./routes/admin');
+const shopRoutes = require('./routes/shop');
+const authRoutes = require('./routes/auth');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
-app.use(multer({storage: fileStorage}).single('image'));
+app.use(
+  multer({ storage: fileStorage, fileFilter: fileFilter }).single('image'),
+);
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(
@@ -45,8 +61,8 @@ app.use(
     secret: 'my secret',
     resave: false,
     saveUninitialized: false,
-    store: store
-  })
+    store: store,
+  }),
 );
 app.use(csrfProtection);
 app.use(flash());
@@ -84,7 +100,7 @@ app.use(errorController.get404);
 
 app.use((error, req, res, next) => {
   res.redirect('/500');
-})
+});
 
 mongoose
   .connect(db)
