@@ -1,5 +1,8 @@
 const Product = require('../models/product');
 const Order = require('../models/order');
+const stripeKey = require('./config/keys-dev').stripeKey;
+const stripe = require('stripe')(stripeKey);
+
 const fs = require('fs');
 const path = require('path');
 const PDFDocument = require('pdfkit');
@@ -82,10 +85,15 @@ exports.getCart = (req, res, next) => {
     .execPopulate()
     .then(user => {
       const products = user.cart.items;
-      res.render('shop/cart', {
-        path: '/cart',
-        pageTitle: 'Your Cart',
+      let total = 0;
+      products.forEach(p => {
+        total += p.quantity * p.productId.price;
+      });
+      res.render('shop/checkout', {
+        path: '/checkout',
+        pageTitle: 'Checkout',
         products: products,
+        totalSum: total,
       });
     })
     .catch(err => console.log(err));
@@ -113,11 +121,25 @@ exports.postCartDeleteProduct = (req, res, next) => {
     .catch(err => console.log(err));
 };
 
+exports.getCheckout = (req, res, next) => {
+  res.render('shop/checkout', {
+    path: '/checkout',
+    pageTitle: 'Checkout',
+    products: products,
+  });
+};
+
 exports.postOrder = (req, res, next) => {
+  const token = req.body.stripeToken; // Using Express
+  let totalSum = 0;
+
   req.user
     .populate('cart.items.productId')
     .execPopulate()
     .then(user => {
+      user.cart.items.forEach(p => {
+        totalSum += p.quantity * p.productId.price;
+      });
       const products = user.cart.items.map(i => {
         return { quantity: i.quantity, product: { ...i.productId._doc } };
       });
@@ -131,6 +153,13 @@ exports.postOrder = (req, res, next) => {
       return order.save();
     })
     .then(result => {
+      const charge = stripe.charges.create({
+        amount: totalSum,
+        currency: 'usd',
+        description: 'demo order',
+        source: token,
+        metadata: { order_id: result._id.toString() },
+      });
       return req.user.clearCart();
     })
     .then(() => {
